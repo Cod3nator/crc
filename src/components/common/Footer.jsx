@@ -19,13 +19,13 @@ const Footer = () => {
                   <div className="social-icons">
                   <div className="social-icon"><img src={face} alt="" /></div>
                     <div className="social-icon">
-                    <img src={face} alt="" />
+                    <img src={insta} alt="" />
                     </div>
                     <div className="social-icon">
-                    <img src={face} alt="" />
+                    <img src={youtube} alt="" />
                     </div>
                     <div className="social-icon">
-                    <img src={face} alt="" />
+                    <img src={link} alt="" />
                     </div>
                   </div>
                     <div className="footer-copyright">

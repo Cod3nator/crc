@@ -39,7 +39,45 @@ body {
 }
 
 .container {
-  max-width: 1530px;
   width: 100%;
   margin: 0 auto;
+  /* padding: 0 15px; */
+  /* background-color: red; */
+}
+
+@media (min-width: 1536px) {
+  .container {
+    max-width: 1530px;
+  }
+}
+
+@media (min-width: 1200px) and (max-width: 1535px) {
+  .container {
+    max-width: 1200px;
+  }
+}
+
+@media (min-width: 992px) and (max-width: 1199px) {
+  .container {
+    max-width: 960px;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  .container {
+    max-width: 720px;
+  }
+}
+
+@media (min-width: 576px) and (max-width: 767px) {
+  .container {
+    max-width: 540px;
+  }
+}
+
+@media (max-width: 575px) {
+  .container {
+    max-width: 100%;
+    padding: 0 10px;
+  }
 }

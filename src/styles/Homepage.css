@@ -575,7 +575,6 @@ text-transform: lowercase;
   background-color: transparent;
   border-radius: 10px;
   max-width: 423px;
-  /* box-shadow: 0 4px 6px rgba(0,0,0,0.1); */
 }
 
 .customers-comments a {
@@ -729,7 +728,7 @@ text-transform: lowercase;
   display: flex;
   flex-direction: row;
   justify-content: flex-end;
-  margin-left: 280px;
+  margin-left: min(10vw, 280px);
 }
 
 .media-img {
@@ -951,7 +950,8 @@ text-decoration-skip-ink: auto;
 }
 
 .see-all:hover {
-  background-color: #2980b9;
+  /* background-color: #2980b9; */
+  text-decoration: underline;
 }
 
 .faq-img {
