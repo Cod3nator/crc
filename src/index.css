@@ -1,0 +1,45 @@
+@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Jost:ital,wght@0,100..900;1,100..900&display=swap');
+
+:root {
+  font-family: "Jost", sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  color-scheme: light dark;
+  color: rgba(255, 255, 255, 0.87);
+  background-color: #fff;
+  --blue :#6A87C3;
+  --green :#529471;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  /* trust section */
+  --card-height: 40vw;
+  --card-margin: 4vw;
+  --card-top-offset: 1em;
+  --numcards: 4;
+  --outline-width: 0px;
+
+}
+
+a {
+  font-weight: 500;
+  text-decoration: none;
+}
+
+
+body {
+  margin: 0;
+  width: 100%;
+  min-height: 100vh;
+}
+
+.container {
+  max-width: 1530px;
+  width: 100%;
+  margin: 0 auto;
+}
