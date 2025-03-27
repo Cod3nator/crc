@@ -6,40 +6,6 @@ import anime from "animejs/lib/anime.es.js";
 const AboutUs = () => {
   const svgRef = useRef(null);
 
-  useEffect(() => {
-    if (!svgRef.current) return;
-
-    // Select all paths within the phases
-    const paths = document.querySelectorAll(
-      "#phase1 path, #phase2 path, #phase3 path, #phase4 path, #phase5 path"
-    );
-
-    // Animate paths with drawing effect
-    anime({
-      targets: paths,
-      strokeDashoffset: [anime.setDashoffset, 0], // Draw the path
-      easing: "easeInOutSine",
-      duration: 1000,
-      delay: anime.stagger(10, { start: 10 }), // Stagger the animation
-      begin: (anim) => {
-        // Set initial stroke properties
-        paths.forEach((path) => {
-          path.style.stroke = "#6A87C3"; // Use the fill color as stroke
-          path.style.strokeWidth = "2";
-          path.style.fill = "none"; // Make fill transparent during animation
-          path.style.strokeDasharray = path.getTotalLength();
-          path.style.strokeDashoffset = path.getTotalLength();
-        });
-      },
-      complete: (anim) => {
-        // Restore original fill after animation
-        paths.forEach((path) => {
-          path.style.fill = "#6A87C3";
-          path.style.stroke = "none";
-        });
-      },
-    });
-  }, []);
 
   return (
     <section className="about-us-section">

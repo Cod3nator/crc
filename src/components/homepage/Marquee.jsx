@@ -37,10 +37,10 @@ const Marquee = () => {
   }, []);
 
   return (
-    <div className="w-full overflow-hidden  py-4">
-      <div className="relative flex items-center">
-        <div ref={scrollContainerRef} className="flex whitespace-nowrap">
-          <div className="scroll-text inline-flex text-black font-light px-8" style={{fontSize:"128px"}}>
+    <div className="marquee-container">
+      <div className="marquee-wrapper">
+        <div ref={scrollContainerRef} className="marquee-scroll-container">
+          <div className="scroll-text">
             Designing spaces that inspire and empower, for life and work.
           </div>
         </div>

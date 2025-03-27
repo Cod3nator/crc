@@ -1,8 +1,21 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import faqSVG from "../../assets/faq_img.jsx";
 
 const FAQ = () => {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768); // Adjust breakpoint as needed
+    };
+
+    handleResize(); // Check initial screen size
+    window.addEventListener("resize", handleResize);
+
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   let questAnswers = [
     {
       ques: "How do I know if the project is RERA registered?",
@@ -28,25 +41,36 @@ const FAQ = () => {
           className="faq-section"
           initial="hidden"
           whileInView="visible"
-          viewport={{ once: true, amount: 0.2 }}
+          viewport={{ once: true, amount: 0.7 }}
           variants={{
             hidden: { opacity: 0 },
-            visible: { opacity: 1, transition: { staggerChildren: 0.7 } },
+            visible: { opacity: 1, transition: { staggerChildren: 0.3 } },
           }}
         >
-          {/* Section Title Animation */}
           <motion.div
             className="faqs-division"
             variants={{
-                hidden: { opacity: 0, y: -50 },
-                visible: { opacity: 1, y: 0, transition: { duration: 1 } },
-              }}
+              hidden: { opacity: 0, y: -50 },
+              visible: { opacity: 1, y: 0, transition: { duration: 1 } },
+            }}
           >
             <div className="section-title">
               <h2>Find the answers you need, with ease.</h2>
             </div>
 
-            {/* FAQ List */}
+            {/* Show FAQ image below title only on mobile */}
+            {isMobile && (
+              <motion.div
+                className="faq-img"
+                variants={{
+                  hidden: { opacity: 0 },
+                  visible: { opacity: 1, transition: { duration: 1 } },
+                }}
+              >
+                {faqSVG()}
+              </motion.div>
+            )}
+
             <motion.div className="faqs">
               {questAnswers.map((item, index) => (
                 <motion.div
@@ -75,15 +99,21 @@ const FAQ = () => {
             </motion.div>
           </motion.div>
 
-          {/* FAQ Image Animation */}
-          <motion.div
-            className="faq-img"
-            variants={{ hidden: { opacity: 0, x: -50 }, visible: {    opacity: 1,
-                x: 0,
-                transition: { duration: 1.2 },} }}
-          >
-            {faqSVG()}
-          </motion.div>
+          {/* FAQ Image (Hidden on Mobile) */}
+          {!isMobile && (
+            <motion.div
+              className="faq-img"
+              variants={{
+                hidden: { opacity: 0 },
+                visible: {
+                  opacity: 1,
+                  transition: { duration: 1.2 },
+                },
+              }}
+            >
+              {faqSVG()}
+            </motion.div>
+          )}
         </motion.div>
       </div>
     </div>

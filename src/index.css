@@ -36,48 +36,63 @@ body {
   margin: 0;
   width: 100%;
   min-height: 100vh;
+  position: relative;
 }
-
+main{
+  margin-top: 162px;
+}
 .container {
   width: 100%;
-  margin: 0 auto;
-  /* padding: 0 15px; */
-  /* background-color: red; */
+  max-width: 1530px; /* Desktop max-width */
+  margin: 0 auto; /* Center the container */
+  padding: 0 5%; /* Responsive side padding */
+  box-sizing: border-box; /* Include padding in width calculation */
 }
 
+/* Extra Large Screens (1536px and above) */
 @media (min-width: 1536px) {
   .container {
-    max-width: 1530px;
+      max-width: 1530px;
+      padding: 0 5%;
   }
 }
 
+/* Large Screens (1200px - 1535px) */
 @media (min-width: 1200px) and (max-width: 1535px) {
   .container {
-    max-width: 1200px;
+      max-width: 1200px;
+      padding: 0 4%;
   }
 }
 
+/* Medium Screens (992px - 1199px) */
 @media (min-width: 992px) and (max-width: 1199px) {
   .container {
-    max-width: 960px;
+      max-width: 960px;
+      padding: 0 4%;
   }
 }
 
+/* Small Screens (768px - 991px) */
 @media (min-width: 768px) and (max-width: 991px) {
   .container {
-    max-width: 720px;
+      max-width: 720px;
+      padding: 0 4%;
   }
 }
 
+/* Extra Small Screens (576px - 767px) */
 @media (min-width: 576px) and (max-width: 767px) {
   .container {
-    max-width: 540px;
+      max-width: 540px;
+      padding: 0 4%;
   }
 }
 
+/* Mobile Screens (Below 576px) */
 @media (max-width: 575px) {
   .container {
-    max-width: 100%;
-    padding: 0 10px;
+      max-width: 100%;
+      padding: 0 5%;
   }
 }

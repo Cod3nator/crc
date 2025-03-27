@@ -9,51 +9,34 @@ import rect6 from "../../assets/rect6.png";
 import looseBox from "../../assets/loosebox.svg";
 
 const ScrollingImages = ({ images, direction }) => {
-  const [scrollSpeed, setScrollSpeed] = useState(1);
+  const [isMobile, setIsMobile] = useState(false);
   const containerRef = useRef(null);
-  const timeoutRef = useRef(null);
 
   useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
-
-    const handleWheel = (event) => {
-      // Increase scroll speed when user is actively scrolling
-      setScrollSpeed(3); // Faster speed during active scrolling
-      
-      // Clear any existing timeout
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
-
-      // Reset to normal speed after scrolling stops
-      timeoutRef.current = setTimeout(() => {
-        setScrollSpeed(1);
-      }, 200); // Adjust this delay as needed
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 968);
     };
 
-    // Add event listener
-    container.addEventListener('wheel', handleWheel);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
 
-    // Cleanup
     return () => {
-      container.removeEventListener('wheel', handleWheel);
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
+      window.removeEventListener('resize', checkMobile);
     };
   }, []);
+
+  const scrollImages = isMobile 
+  ? [...images, ...images, ...images]  
+  : [...images, ...images];
+
 
   return (
     <div 
       ref={containerRef}
-      className={`scroll-container ${direction}`}
-      style={{
-        '--scroll-duration': `${10 / scrollSpeed}s`
-      }}
+      className={`scroll-container ${direction} ${isMobile ? 'mobile-scroll' : ''}`}
     >
       <div className="scroll-content">
-        {[...images, ...images].map((src, index) => (
+        {scrollImages.map((src, index) => (
           <div className="scroll-item" key={index}>
             <img src={src} alt="scrolling-img" className="sketch" />
             <div className="original"></div>

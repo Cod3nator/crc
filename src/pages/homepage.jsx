@@ -15,14 +15,14 @@ const Homepage = () => {
     <>
     <Hero />
     <AboutUs />
-    <Marquee />
-    <Trust />
-    <DNA />
-    <Explore />
-    <HappyCustomer />
+  <Marquee />
+ <Trust />
+  <DNA />
+       <Explore />
+        <HappyCustomer />
     <HappinesHub />
-    <Media /> 
-    <FAQ />
+   <Media /> 
+     <FAQ />
     </>
   )
 }

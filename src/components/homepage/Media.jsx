@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import micSVG from "../../assets/mics.jsx";
 import videoPlaceholder1 from "../../assets/video-placeholder1.png";
@@ -33,17 +33,27 @@ const Media = () => {
   const closeVideo = () => {
     setVideoUrl(null);
   };
+  const [isMobile, setIsMobile] = useState(false);
+    useEffect(() => {
+      const handleResize = () => {
+        setIsMobile(window.innerWidth < 768);
+      };
+  
+      handleResize();
+      window.addEventListener("resize", handleResize);
+  
+      return () => window.removeEventListener("resize", handleResize);
+    }, []);
+  
 
   return (
     <div className="media">
-      <div className="container">
         <div className="media-box">
-          {/* Media Image Section */}
           <motion.div
             className="media-img"
             initial="hidden"
             whileInView="visible"
-            viewport={{ once: true, amount: 0.2 }}
+            viewport={{ once: true, amount: 0.7 }}
             variants={{
               hidden: { opacity: 0, y: 50 },
               visible: { opacity: 1, y: 0, transition: { staggerChildren: 0.2 } },
@@ -62,17 +72,18 @@ const Media = () => {
               </motion.a>
             </motion.div>
 
-            <motion.div className="media-main-image" variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }}>
-              {micSVG()}
-            </motion.div>
+           {
+            !isMobile ?            <motion.div className="media-main-image" variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }}>
+            {micSVG()}
+          </motion.div> :""
+           }
           </motion.div>
 
-          {/* Media Video Section */}
           <motion.div
             className="media-video"
             initial="hidden"
             whileInView="visible"
-            viewport={{ once: true, amount: 0.2 }}
+            viewport={{ once: true, amount: 0.7 }}
             variants={{
               hidden: { opacity: 0 },
               visible: { opacity: 1, transition: { staggerChildren: 0.3 } },
@@ -93,8 +104,13 @@ const Media = () => {
               </motion.a>
             ))}
           </motion.div>
+          {
+            isMobile ?            <motion.div className="media-main-image" variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }}>
+            {micSVG()}
+          </motion.div> :""
+           }
         </div>
-      </div>
+
 
       {/* Video Modal */}
       {videoUrl && (
@@ -105,7 +121,6 @@ const Media = () => {
               height="100%"
               src={`${videoUrl}?autoplay=1`}
               title="Video Player"
-              frameBorder="0"
               allow="autoplay; encrypted-media"
               allowFullScreen
             ></iframe>
