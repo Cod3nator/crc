@@ -48,6 +48,7 @@ const Media = () => {
 
   return (
     <div className="media">
+      <div className="media-wrapper">
         <div className="media-box">
           <motion.div
             className="media-img"
@@ -110,7 +111,7 @@ const Media = () => {
           </motion.div> :""
            }
         </div>
-
+        </div>
 
       {/* Video Modal */}
       {videoUrl && (

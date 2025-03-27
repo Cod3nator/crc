@@ -2,7 +2,7 @@
 
 const Hero = () => {
   return (
-    <div className="hero-container no-transparency">
+    <div className="hero-container">
       <video 
         className="hero-video" 
         autoPlay 

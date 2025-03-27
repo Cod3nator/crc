@@ -10,7 +10,7 @@ const cardVariants = {
   visible: (index) => ({
     opacity: 1,
     y: 0,
-    transition: { delay: index * 0.5, duration: 0.8, ease: "easeOut" }
+    transition: { delay: index * 0.2, duration: 0.5, ease: "easeOut" }
   })
 };
 
@@ -41,7 +41,7 @@ const DNA = () => {
               variants={cardVariants}
               initial="hidden"
               whileInView="visible"
-              viewport={{ once: true , amount: 1  }}
+              viewport={{ once: true , amount: 0.7  }}
               custom={index}
             >
               <h3 className="service-title">{service.title}</h3>

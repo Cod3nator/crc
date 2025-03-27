@@ -165,7 +165,7 @@
   padding-bottom: 0px;
 }
 
-.trust .container {
+.trust .text-box {
   position: sticky;
   top: 163px;
 }
@@ -209,19 +209,19 @@
 
 #card_1 {
   --index: 1;
-  top: 490px;
+  top: 440px;
   height: 500px;
 }
 
 #card_2 {
   --index: 2;
-  top: 640px;
+  top: 560px;
   height: 400px;
 }
 
 #card_3 {
   --index: 3;
-  top: 930px;
+  top: 660px;
   height: 300px;
 }
 
@@ -270,7 +270,8 @@
   width: 100%;
   display: flex;
   border-radius: 10px;
-  padding: 15px;
+  padding: 15px 0;
+  
   height: 100%;
   transition: transform 0.3s ease;
 }
@@ -278,7 +279,7 @@
 .card__content h3 {
   font-size: 32px;
   margin: 0;
-  text-align: center;
+  text-align: start;
 }
 
 .card:nth-of-type(odd) .card__content h3 {
@@ -297,7 +298,7 @@
   }
 
   .trust .container {
-    top: 80px;
+    top: 160px;
   }
 
   .section-title h2 {
@@ -312,7 +313,7 @@
   }
 
   #card_1 {
-    top: 260px;
+    top: 160px;
     height: 950px;
   }
 
@@ -339,7 +340,7 @@
   }
 
   .card__content {
-    padding: 30px;
+    /* padding: 30px; */
   }
 
   .card__content h3 {
@@ -686,6 +687,7 @@
     height: 20vh;
     overflow: hidden;
     white-space: nowrap;
+    position: relative;
   }
 
   .scroll-content {
@@ -693,18 +695,52 @@
     flex-direction: row;
     height: 100%;
     width: max-content;
+    animation: scroll-animation var(--scroll-duration, 25s) linear infinite;
+  }
+/* Upwards scrolling */
+.scroll-container.up .scroll-content {
+  animation-name: scroll-right;
+}
+
+/* Downwards scrolling */
+.scroll-container.down .scroll-content {
+  animation-name: scroll-left;
+}
+
+/* Hover to pause animation */
+.scroll-container:hover .scroll-content {
+  animation-play-state: paused;
+}
+
+@keyframes scroll-right {
+  from {
+    transform: translateX(0%);
+  }
+  to {
+    transform: translateX(-50%); /* Moves exactly half to create seamless loop */
+  }
+}
+
+@keyframes scroll-left {
+  from {
+    transform: translateX(-50%);
+  }
+  to {
+    transform: translateX(0%);
+  }
+}
+
+  /* .scroll-container.up .scroll-content {
+    display: flex;
+    white-space: nowrap;
+    animation: mobileScrollRight 25s linear infinite;
   }
 
-  /* Up container scrolls right */
-  .scroll-container.up .scroll-content {
-    animation: mobileScrollRight linear infinite;
-    animation-duration: 25s;
-  }
 
-  /* Down container scrolls left */
   .scroll-container.down .scroll-content {
-    animation: mobileScrollLeft linear infinite;
-    animation-duration: 25s;
+    display: flex;
+    white-space: nowrap;
+    animation: mobileScrollLeft 25s linear infinite;
   }
 
   .scroll-container:hover .scroll-content {
@@ -712,22 +748,22 @@
   }
 
   @keyframes mobileScrollRight {
-    0% { 
-      transform: translateX(0%); 
+    from { 
+      transform: translateX(0); 
     }
-    100% { 
-      transform: translateX(calc(-100% + 100vw)); 
+    to { 
+      transform: translateX(-50%);
     }
   }
 
   @keyframes mobileScrollLeft {
-    0% { 
-      transform: translateX(calc(-100% + 100vw)); 
+    from { 
+      transform: translateX(-50%); 
     }
-    100% { 
-      transform: translateX(0%); 
+    to { 
+      transform: translateX(0); 
     }
-  }
+  } */
   .text-content {
     max-width: 100%;
     font-size: 1.2rem;
@@ -743,12 +779,12 @@
 
   .our-projects img {
     position: absolute;
-    top: -24px;
-    left:8px;
+    top: -28px;
+    left:4px;
     transform: none;
     width: 100%;
-    max-width: 268px;
-    max-height: 180px;
+    max-width: 280px;
+    max-height: 160px;
     height: auto;
   }
    .projects-title{
@@ -756,7 +792,7 @@
     padding-bottom: 10px;
    }
   .our-projects p {
-    width: 100%;
+    width: 92%;
     max-width: 240px;
     font-size: 8px;
   }
@@ -942,6 +978,9 @@
   }
 }
 @media (max-width: 968px) {
+  .happy-customers {
+    padding: 60px 0px;
+  }
   .customers-section {
     flex-direction: column;
     align-items: center;
@@ -1036,9 +1075,9 @@
   overflow-x: hidden;
 }
 
-.happiness-hub .container {
+/* .happiness-hub .container {
 
-}
+} */
 
 .happiness-hub .section-title {   
   margin-bottom: 120px; 
@@ -1268,7 +1307,12 @@
     height: 14px;
   }
 }
-
+@media (max-width: 768px) {
+  .emp-comment, .cust-comment {
+    width: 250px;
+    font-size: 10px;
+  }
+}
 @media (max-width: 480px) {
   .happiness-hub .section-title h2 {
     font-size: 36px;
@@ -1398,9 +1442,11 @@
   text-transform: lowercase;
 }
 
-/* .media-video-card:hover {
-  transform: translateY(-10px);
-} */
+.media-wrapper{
+  margin-left: clamp(1px, 2vw, 240px);
+  padding: 0px 24px;
+}
+ 
 @media (max-width: 1400px) {
 .media-video {
   width: calc(50% + (90vw - 100%) / 2); /* Extends beyond the container */
@@ -1453,6 +1499,7 @@
     padding-bottom: 40px;
   }
   .media-img{
+    max-width: 100%;
     margin-bottom: 16px;
   }
   .media-main-image div{

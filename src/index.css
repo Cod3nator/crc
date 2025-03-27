@@ -38,9 +38,7 @@ body {
   min-height: 100vh;
   position: relative;
 }
-main{
-  margin-top: 162px;
-}
+
 .container {
   width: 100%;
   max-width: 1530px; /* Desktop max-width */

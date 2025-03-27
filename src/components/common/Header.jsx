@@ -1,55 +1,11 @@
-import React, { useState, useEffect, useCallback } from 'react'; 
+import React, { useState, useEffect } from 'react'; 
+import useHeaderTransparency from '../../hooks/UseHeaderTransparency.js'; 
 import Logo from "../../assets/Logo.png"; 
 import '../../styles/Header.css'  
 
-function useHeaderTransparency() {   
-  const [isTransparent, setIsTransparent] = useState(true);    
-
-  useEffect(() => {
-    const heroContainer = document.querySelector('.hero-container');
-    
-    const handleScroll = () => {
-      if (!heroContainer) return;
-
-      const heroRect = heroContainer.getBoundingClientRect();
-      const sections = document.querySelectorAll('section');
-      
-      // Check if any section is in the viewport
-      let shouldBeTransparent = false;
-      
-      sections.forEach(section => {
-        const sectionRect = section.getBoundingClientRect();
-        
-        // Check if section is in the first 50% of the viewport
-        if (sectionRect.top < window.innerHeight * 0.5 && sectionRect.bottom > 0) {
-          // Exclude specific sections or add a condition
-          if (!section.classList.contains('no-transparency')) {
-            shouldBeTransparent = true;
-          }
-        }
-      });
-      
-      setIsTransparent(shouldBeTransparent);     
-    }; 
-
-    // Add scroll event listener
-    window.addEventListener('scroll', handleScroll);
-    
-    // Initial check
-    handleScroll();
-    
-    // Cleanup function
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-    };
-  }, []); 
-
-  return isTransparent; 
-}
-
 const Header = () => {   
   const [isMenuOpen, setIsMenuOpen] = useState(false);   
-  const isTransparent = useHeaderTransparency();    
+  const isTransparent = useHeaderTransparency(); // Use the imported hook   
 
   const toggleMenu = () => {     
     setIsMenuOpen(!isMenuOpen);   
@@ -61,10 +17,8 @@ const Header = () => {
     const targetSection = document.getElementById(targetId);      
 
     if (targetSection) {       
-      // Close menu first       
       setIsMenuOpen(false);        
-
-      // Scroll to section       
+     
       targetSection.scrollIntoView({ behavior: 'smooth' });     
     }   
   };    

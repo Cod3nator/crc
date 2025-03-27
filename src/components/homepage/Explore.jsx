@@ -8,13 +8,17 @@ import rect5 from "../../assets/rect5.png";
 import rect6 from "../../assets/rect6.png";
 import looseBox from "../../assets/loosebox.svg";
 
+
 const ScrollingImages = ({ images, direction }) => {
   const [isMobile, setIsMobile] = useState(false);
   const containerRef = useRef(null);
+  const [scrollSpeed, setScrollSpeed] = useState(25); // Adjust speed dynamically
 
   useEffect(() => {
     const checkMobile = () => {
-      setIsMobile(window.innerWidth <= 968);
+      const mobileScreen = window.innerWidth <= 968;
+      setIsMobile(mobileScreen);
+      setScrollSpeed(mobileScreen ? 30 : 25); // Slower speed for mobile
     };
 
     checkMobile();
@@ -25,15 +29,13 @@ const ScrollingImages = ({ images, direction }) => {
     };
   }, []);
 
-  const scrollImages = isMobile 
-  ? [...images, ...images, ...images]  
-  : [...images, ...images];
-
+  const scrollImages = [...images, ...images];
 
   return (
     <div 
       ref={containerRef}
       className={`scroll-container ${direction} ${isMobile ? 'mobile-scroll' : ''}`}
+      style={{ '--scroll-duration': `${scrollSpeed}s` }} // Pass speed to CSS
     >
       <div className="scroll-content">
         {scrollImages.map((src, index) => (
@@ -46,6 +48,8 @@ const ScrollingImages = ({ images, direction }) => {
     </div>
   );
 };
+
+
 
 const Explore = () => {
   return (
