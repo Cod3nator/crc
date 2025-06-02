@@ -9,6 +9,9 @@ import HappyCustomer from "../components/homepage/HappyCustomer";
 import HappinesHub from "../components/homepage/HappinesHub";
 import Media from "../components/homepage/Media";
 import FAQ from "../components/homepage/FAQ";
+import DnaSection from "../components/homepage/DnaSection";
+import VideoOnScrollSection from "../components/homepage/DnaSection";
+import ScrollVideoPlayer from "../components/homepage/DnaSection";
 
 const Homepage = () => {
   return (
@@ -17,13 +20,17 @@ const Homepage = () => {
       <div className="nav-trans">
       <AboutUs />
       <Marquee />
+         <ScrollVideoPlayer />
       <Trust />
-      <DNA />
-      <Explore />
+      
+      {/* <DNA /> */}
+      {/* <Explore />
       <HappyCustomer />
-      <HappinesHub />
-      <Media />
-      <FAQ />
+      <HappinesHub /> */}
+      {/* <DnaSection /> */}
+  
+      {/* <Media />
+      <FAQ /> */}
       </div>
     </>
   );

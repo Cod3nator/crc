@@ -13,9 +13,12 @@
     "@tailwindcss/vite": "^4.0.15",
     "animejs": "^3.2.2",
     "framer-motion": "^12.6.0",
+    "gsap": "^3.13.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "react-intersection-observer": "^9.16.0",
     "react-router-dom": "^7.4.0",
+    "scrolly-video": "^0.0.24",
     "tailwindcss": "^4.0.15"
   },
   "devDependencies": {

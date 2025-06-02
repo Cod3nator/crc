@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Homepage from "./pages/homepage";
 import Layout from "./components/layout/base";
+import DNApage from "./pages/DNApage";
 function App() {
 
   return (
@@ -8,8 +9,8 @@ function App() {
       <Routes>
         <Route path="/" element={<Layout />}>
           <Route index element={<Homepage />} />
-          {/* <Route path="about" element={<About />} />
-          <Route path="contact" element={<Contact />} />
+           <Route path="/dna_commercial" element={<DNApage />} />
+          {/*<Route path="contact" element={<Contact />} />
           <Route path="*" element={<NotFound />} /> */}
         </Route>
       </Routes>
