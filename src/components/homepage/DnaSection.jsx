@@ -1,331 +1,305 @@
 import React, { useRef, useEffect, useState } from 'react';
+import { gsap } from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { motion, useTransform, useScroll } from 'framer-motion';
 import dnaVideo from "../../assets/dna.mp4";
+
+// Register the ScrollTrigger plugin
+gsap.registerPlugin(ScrollTrigger);
 
 const ScrollVideoPlayer = () => {
   const videoRef = useRef(null);
   const containerRef = useRef(null);
   const triggerRef = useRef(null);
+  const scrollTriggerRef = useRef(null);
+  const videoInitializedRef = useRef(false);
   const [videoLoaded, setVideoLoaded] = useState(false);
-  const [animeLoaded, setAnimeLoaded] = useState(false);
+  const [videoDuration, setVideoDuration] = useState(0);
   const [scrollProgress, setScrollProgress] = useState(0);
   const [isInViewport, setIsInViewport] = useState(false);
 
+  // Framer Motion animation values
+  const { scrollYProgress } = useScroll({
+    target: triggerRef,
+    offset: ["start start", "end end"]
+  });
+
+  // Transform values based on scroll progress
+  const titleOpacity = useTransform(scrollYProgress, [0, 0.2, 0.8, 1], [0, 1, 1, 0]);
+  const titleY = useTransform(scrollYProgress, [0, 0.2, 0.8, 1], [50, 0, 0, -50]);
+  const subtitleOpacity = useTransform(scrollYProgress, [0, 0.3, 0.7, 1], [0, 1, 1, 0]);
+  const subtitleY = useTransform(scrollYProgress, [0, 0.3, 0.7, 1], [30, 0, 0, -30]);
+  const videoFilter = useTransform(
+    scrollYProgress,
+    [0, 0.5, 1],
+    [
+      "brightness(1.0) contrast(1.0)",
+      "brightness(1.1) contrast(1.05)",
+      "brightness(1.0) contrast(1.0)"
+    ]
+  );
+
   useEffect(() => {
-    // Load Anime.js from CDN
-    const script = document.createElement('script');
-    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js';
-    script.onload = () => {
-      console.log('Anime.js loaded');
-      setAnimeLoaded(true);
-    };
-    document.head.appendChild(script);
-
-    return () => {
-      if (document.head.contains(script)) {
-        document.head.removeChild(script);
-      }
-    };
-  }, []);
-
-  useEffect(() => {
-    if (!animeLoaded) return;
-
     const video = videoRef.current;
     const container = containerRef.current;
     const trigger = triggerRef.current;
 
     if (!video || !container || !trigger) return;
 
-    let isVideoReady = false;
-    let currentAnimation = null;
-    let isAnimating = false;
+    // Prevent duplicate initialization
+    if (videoInitializedRef.current) return;
+
+    let lastTime = 0;
+    let requestId = null;
+    let lastScrollDirection = 0;
+    let lastScrollPos = 0;
+
+    // Throttle function for smoother updates
+    const throttle = (callback, delay) => {
+      let last = 0;
+      return function () {
+        const now = new Date().getTime();
+        if (now - last >= delay) {
+          callback.apply(null, arguments);
+          last = now;
+        }
+      };
+    };
+
+    // Handle video seek with RAF for smoother playback
+    const updateVideoTime = (time) => {
+      if (requestId) {
+        cancelAnimationFrame(requestId);
+      }
+
+      requestId = requestAnimationFrame(() => {
+        if (Math.abs(video.currentTime - time) > 0.01) {
+          video.currentTime = time;
+        }
+      });
+    };
 
     const handleVideoLoaded = () => {
+      if (videoInitializedRef.current) return;
+
       console.log("Video loaded, duration:", video.duration);
       setVideoLoaded(true);
-      isVideoReady = true;
+      setVideoDuration(video.duration);
       video.currentTime = 0;
+      video.muted = true;
+      videoInitializedRef.current = true;
+
+      // Adjust the scroll height dynamically based on video duration
+      // 1 second = 50vh of scrolling space (configurable)
+      const scrollMultiplier = 50; // vh per second
+      const scrollHeight = Math.max(300, Math.round(video.duration * scrollMultiplier));
+      trigger.style.height = `${scrollHeight}vh`;
+      console.log(`Set scroll height to ${scrollHeight}vh based on video duration ${video.duration}s`);
+
       setupScrollAnimation();
     };
 
     const setupScrollAnimation = () => {
-      if (!isVideoReady || !window.anime) return;
+      // Clear any existing ScrollTrigger instances
+      if (scrollTriggerRef.current) {
+        scrollTriggerRef.current.kill();
+      }
 
-      const handleScroll = () => {
-        if (!video.duration) return;
+      // Create the GSAP ScrollTrigger
+      scrollTriggerRef.current = ScrollTrigger.create({
+        trigger: trigger,
+        start: "top top",
+        end: "bottom bottom",
+        scrub: 1, // Smoother scrubbing effect (higher value = smoother but more delay)
+        markers: false, // Set to true for debugging
+        pin: container,
+        pinSpacing: true,
+        anticipatePin: 1,
+        refreshPriority: 1,
+        fastScrollEnd: true,
+        onUpdate: throttle((self) => {
+          // Get progress from 0 to 1
+          const progress = self.progress;
+          setScrollProgress(progress);
+          setIsInViewport(self.isActive);
 
-        const rect = trigger.getBoundingClientRect();
-        const triggerHeight = trigger.offsetHeight;
-        const windowHeight = window.innerHeight;
+          // Determine scroll direction
+          const currentScrollPos = window.scrollY;
+          const scrollDirection = currentScrollPos > lastScrollPos ? 1 : -1;
+          lastScrollPos = currentScrollPos;
 
-        // Calculate scroll progress through the 200vh container
-        let progress = 0;
-        let inViewport = false;
-
-        if (rect.top <= 0 && rect.bottom >= windowHeight) {
-          // Container is in viewport and scrolling
-          progress = Math.abs(rect.top) / (triggerHeight - windowHeight);
-          inViewport = true;
-        } else if (rect.top > 0) {
-          // Container hasn't entered yet
-          progress = 0;
-          inViewport = false;
-        } else if (rect.bottom < windowHeight) {
-          // Container has passed completely
-          progress = 1;
-          inViewport = false;
-        }
-
-        // Clamp progress
-        progress = Math.max(0, Math.min(1, progress));
-        setScrollProgress(progress);
-        setIsInViewport(inViewport);
-
-        // Handle video playback based on viewport and scroll
-        const targetTime = progress * video.duration;
-        
-        if (inViewport) {
-          // Video should play when in viewport
-          if (video.paused) {
-            video.play().catch(e => console.log('Play prevented:', e));
+          if (scrollDirection !== lastScrollDirection) {
+            lastScrollDirection = scrollDirection;
           }
-          
-          // Use Anime.js to smoothly animate video currentTime while playing
-          if (!isAnimating && Math.abs(targetTime - video.currentTime) > 0.2) {
-            isAnimating = true;
-            
-            if (currentAnimation) {
-              currentAnimation.pause();
+
+          if (video && video.duration) {
+            // Set video currentTime based on scroll progress
+            const targetTime = progress * video.duration;
+
+            // Only update if the change is significant
+            if (Math.abs(lastTime - targetTime) > 0.01) {
+              updateVideoTime(targetTime);
+              lastTime = targetTime;
             }
 
-            currentAnimation = window.anime({
-              targets: { time: video.currentTime },
-              time: targetTime,
-              duration: 300,
-              easing: 'easeOutCubic',
-              update: function(anim) {
-                const newTime = anim.animations[0].currentValue;
-                if (Math.abs(video.currentTime - newTime) > 0.1) {
-                  video.currentTime = newTime;
-                }
-              },
-              complete: function() {
-                isAnimating = false;
+            // Ensure video is always playing when in viewport
+            if (self.isActive) {
+              if (video.paused) {
+                video.play().catch(e => console.log('Play prevented:', e));
               }
-            });
-          } else if (!isAnimating) {
-            // For small changes, update directly
-            video.currentTime = targetTime;
+            } else {
+              if (!video.paused) {
+                video.pause();
+              }
+            }
           }
-        } else {
-          // Pause video when not in viewport
-          if (!video.paused) {
-            video.pause();
-          }
-          // Still update time for when it comes back into view
-          video.currentTime = targetTime;
-        }
+        }, 16) // ~60fps throttling
+      });
 
-        // Handle container pinning with CSS
-        if (progress > 0 && progress < 1) {
-          container.style.position = 'fixed';
-          container.style.top = '0';
-          container.style.left = '0';
-          container.style.right = '0';
-          container.style.zIndex = '10';
-        } else if (progress >= 1) {
-          container.style.position = 'absolute';
-          container.style.top = 'auto';
-          container.style.bottom = '0';
-          container.style.left = '0';
-          container.style.right = '0';
-          container.style.zIndex = '10';
-        } else {
-          container.style.position = 'absolute';
-          container.style.top = '0';
-          container.style.left = '0';
-          container.style.right = '0';
-          container.style.zIndex = '10';
-        }
-
-        console.log(`Progress: ${(progress * 100).toFixed(1)}%, Video Time: ${targetTime.toFixed(2)}s, In Viewport: ${inViewport}, Playing: ${!video.paused}`);
-      };
-
-      // Add scroll listener with throttling
-      let ticking = false;
-      const scrollListener = () => {
-        if (!ticking) {
-          requestAnimationFrame(() => {
-            handleScroll();
-            ticking = false;
-          });
-          ticking = true;
-        }
-      };
-
-      window.addEventListener('scroll', scrollListener, { passive: true });
-      
-      // Initial call
-      handleScroll();
-
-      // Return cleanup function
+      ScrollTrigger.refresh();
       return () => {
-        window.removeEventListener('scroll', scrollListener);
-        if (currentAnimation) {
-          currentAnimation.pause();
+        if (requestId) {
+          cancelAnimationFrame(requestId);
+        }
+        if (scrollTriggerRef.current) {
+          scrollTriggerRef.current.kill();
         }
       };
     };
 
-    // Video event listeners
-    video.addEventListener('loadedmetadata', handleVideoLoaded);
-    video.addEventListener('canplay', handleVideoLoaded);
+    // Video event listeners - only add once
+    video.addEventListener('loadedmetadata', handleVideoLoaded, { once: true });
+    video.addEventListener('canplay', handleVideoLoaded, { once: true });
     video.addEventListener('error', (e) => {
       console.error("Video error:", e);
-    });
-
-    // Prevent default video controls behavior
-    video.addEventListener('pause', (e) => {
-      if (isInViewport && !isAnimating) {
-        // Only allow pause when not in viewport or when animating
-        e.preventDefault();
-        video.play().catch(console.log);
-      }
-    });
+    }, { once: true });
 
     // Force load video
-    video.load();
+    video.muted = true;
+    video.playsInline = true;
+    video.preload = "auto";
+    video.currentTime = 0;
 
-    // If video is already loaded
-    if (video.readyState >= 1) {
-      handleVideoLoaded();
-    }
-
-    // Setup scroll animation cleanup
-    const cleanup = setupScrollAnimation();
-
-    return () => {
-      if (cleanup) cleanup();
-      video.removeEventListener('loadedmetadata', handleVideoLoaded);
-      video.removeEventListener('canplay', handleVideoLoaded);
-      if (currentAnimation) {
-        currentAnimation.pause();
+    // Start loading the video
+    const loadVideo = async () => {
+      try {
+        video.load();
+        // If video is already loaded
+        if (video.readyState >= 3) {
+          handleVideoLoaded();
+        }
+      } catch (err) {
+        console.error("Error loading video:", err);
       }
     };
-  }, [animeLoaded]);
+
+    loadVideo();
+
+    return () => {
+      // Clean up event listeners
+      video.removeEventListener('loadedmetadata', handleVideoLoaded);
+      video.removeEventListener('canplay', handleVideoLoaded);
+
+      // Cancel any pending animation frames
+      if (requestId) {
+        cancelAnimationFrame(requestId);
+      }
+
+      // Kill ScrollTrigger instance
+      if (scrollTriggerRef.current) {
+        scrollTriggerRef.current.kill();
+      }
+    };
+  }, []); // Empty dependency array to ensure this only runs once
 
   return (
     <div className="w-full">
-      {/* Content before video section */}
-      {/* <div className="h-screen bg-gradient-to-br from-purple-50 to-pink-100 flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-5xl font-bold text-gray-800 mb-4">DNA Animation</h1>
-          <p className="text-xl text-gray-600 mb-4">Scroll-Controlled Video Player</p>
-          {!animeLoaded && (
-            <p className="text-sm text-gray-500">Loading animation library...</p>
-          )}
-          <div className="mt-8 animate-bounce">
-            <svg className="w-6 h-6 mx-auto text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-            </svg>
-          </div>
-          <p className="text-sm text-gray-500 mt-4">
-            Scroll down to see the video play based on your scroll position
-          </p>
-        </div>
-      </div> */}
-
-      {/* 200vh Trigger Container */}
-      <div 
+      {/* Trigger Container - height will be adjusted based on video duration */}
+      <div
         ref={triggerRef}
         className="relative"
-        style={{ height: '200vh' }}
+        style={{ height: '300vh' }} // Start with a taller container, will be adjusted dynamically
       >
         {/* Video Container */}
-        <div 
+        <div
           ref={containerRef}
-          className="absolute top-0 left-0 right-0 w-full h-screen bg-black overflow-hidden z-10"
+          className="w-full h-screen bg-black overflow-hidden z-10"
         >
-          {/* Video Element */}
-          <video
+          {/* Video Element with Framer Motion - removed scale effect */}
+          <motion.video
             ref={videoRef}
             className="w-full h-full object-cover"
             muted
             playsInline
             preload="auto"
             style={{
-              filter: 'brightness(1.1) contrast(1.05)'
+              filter: videoFilter
             }}
           >
             <source src={dnaVideo} type="video/mp4" />
             Your browser does not support the video tag.
-          </video>
+          </motion.video>
 
           {/* Loading State */}
-          {(!videoLoaded || !animeLoaded) && (
+          {!videoLoaded && (
             <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-70">
               <div className="text-white text-center">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
-                <p className="text-lg">
-                  {!animeLoaded ? 'Loading Anime.js...' : 'Loading DNA sequence...'}
-                </p>
+                <p className="text-lg">Loading DNA sequence...</p>
               </div>
             </div>
           )}
 
-          {/* Overlay Content */}
+          {/* Overlay Content with Framer Motion */}
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
             <div className="text-center text-white z-20">
-              <h2 className="text-4xl md:text-7xl font-bold mb-6 opacity-90 tracking-wide">
-                SCROLL VIDEO
-              </h2>
-              <p className="text-lg md:text-2xl opacity-70 max-w-md mx-auto leading-relaxed">
-                Video plays when in viewport
-              </p>
-              <div className="mt-4 text-sm opacity-60">
+              <motion.h2
+                className="text-4xl md:text-7xl font-bold mb-6 tracking-wide"
+                style={{
+                  opacity: titleOpacity,
+                  y: titleY
+                }}
+              >
+                DNA SEQUENCE
+              </motion.h2>
+              <motion.p
+                className="text-lg md:text-2xl max-w-md mx-auto leading-relaxed"
+                style={{
+                  opacity: subtitleOpacity,
+                  y: subtitleY
+                }}
+              >
+                Scroll to control video playback
+              </motion.p>
+              <motion.div
+                className="mt-4 text-sm"
+                style={{ opacity: subtitleOpacity }}
+              >
                 {isInViewport ? '▶ Playing' : '⏸ Paused'}
-              </div>
+              </motion.div>
             </div>
           </div>
 
           {/* Progress Bar */}
-          {/* <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 w-64">
+          <motion.div
+            className="absolute bottom-8 left-1/2 transform -translate-x-1/2 w-64"
+            style={{ opacity: useTransform(scrollYProgress, [0, 0.1, 0.9, 1], [0, 1, 1, 0]) }}
+          >
             <div className="bg-white bg-opacity-20 rounded-full h-2 overflow-hidden">
-              <div 
-                className="bg-gradient-to-r from-purple-400 to-pink-400 rounded-full h-2 transition-all duration-300 ease-out"
+              <motion.div
+                className="bg-gradient-to-r from-purple-400 to-pink-400 rounded-full h-2"
                 style={{
-                  width: `${scrollProgress * 100}%`
+                  width: useTransform(scrollYProgress, [0, 1], ["0%", "100%"]),
+                  transition: { ease: "easeOut", duration: 0.3 }
                 }}
-              ></div>
+              />
             </div>
             <p className="text-white text-sm text-center mt-2 opacity-60">
-              {Math.round(scrollProgress * 100)}% • {isInViewport ? 'In Viewport' : 'Out of Viewport'}
+              {Math.round(scrollProgress * 100)}% • {videoDuration ? `${Math.round(videoDuration)}s video` : 'Loading...'}
             </p>
-          </div> */}
-
-          {/* Debug Info */}
-          {/* <div className="absolute top-4 right-4 bg-black bg-opacity-50 text-white p-3 rounded text-sm font-mono">
-            <div>Anime.js: {animeLoaded ? '✓' : '✗'}</div>
-            <div>Video: {videoLoaded ? '✓' : '✗'}</div>
-            <div>In Viewport: {isInViewport ? '✓' : '✗'}</div>
-            <div>Playing: {videoRef.current && !videoRef.current.paused ? '✓' : '✗'}</div>
-            <div>Progress: {(scrollProgress * 100).toFixed(1)}%</div>
-            <div>Duration: {videoRef.current?.duration?.toFixed(1) || '—'}s</div>
-            <div>Current: {videoRef.current?.currentTime?.toFixed(1) || '0'}s</div>
-          </div> */}
+          </motion.div>
         </div>
       </div>
-
-      {/* Content after video section */}
-      {/* <div className="h-screen bg-gradient-to-br from-blue-50 to-cyan-100 flex items-center justify-center">
-        <div className="text-center max-w-2xl mx-auto px-6">
-          <h1 className="text-5xl font-bold text-gray-800 mb-6">Video Complete</h1>
-          <p className="text-xl text-gray-600 leading-relaxed">
-            The video played smoothly based on your scroll position and paused when out of viewport.
-            Anime.js provided smooth easing transitions for enhanced performance.
-          </p>
-        </div>
-      </div> */}
     </div>
   );
 };
