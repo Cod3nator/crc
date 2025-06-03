@@ -1,0 +1,121 @@
+/* ScrollyVideo custom styles */
+.scrolly-video {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Style for the canvas that ScrollyVideo creates */
+.scrolly-video canvas {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Ensure video container takes full screen height */
+.scrolly-container {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* Optimize rendering with hardware acceleration */
+.scrolly-video,
+.scrolly-video canvas {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  perspective: 1000;
+  will-change: transform;
+}
+
+/* Custom styles for our canvas-based video scroll implementation */
+
+/* Hide the actual video element but keep it loaded */
+.hidden {
+  opacity: 0;
+  position: absolute;
+  z-index: -1;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+/* Canvas styles with performance optimizations */
+.video-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%; 
+  height: 100%;
+  object-fit: cover; /* Changed back to cover to fill the container */
+  display: block;
+  
+  /* Performance optimizations */
+  transform: translateZ(0); 
+  backface-visibility: hidden;
+  perspective: 1000px;
+  will-change: transform;
+  
+  /* Prevent interaction and anti-aliasing */
+  pointer-events: none;
+  image-rendering: high-quality;
+}
+
+/* Ensure container sizing */
+.w-full.h-screen {
+  height: 100vh;
+  width: 100%;
+  overflow: hidden;
+  position: relative;
+  background-color: black; /* Ensure black background for letterboxing */
+}
+
+/* Progress bar optimization */
+.bg-gradient-to-r {
+  will-change: width;
+}
+
+/* Prevent scrollbar jump */
+body {
+  overscroll-behavior: none;
+}
+
+/* Better animation performance */
+.motion-h2,
+.motion-p {
+  will-change: transform, opacity;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* Mobile specific adjustments */
+@media (max-width: 768px) {
+  /* Video container on mobile */
+  .video-canvas {
+    object-position: center; /* Ensure centered on mobile */
+  }
+  
+  /* Adjust text size on mobile */
+  .motion-h2 {
+    font-size: 1.75rem !important;
+    margin-bottom: 0.5rem !important;
+  }
+  
+  .motion-p {
+    font-size: 0.875rem !important;
+    max-width: 85% !important;
+  }
+  
+  /* Progress bar adjustments for mobile */
+  .bottom-8 {
+    bottom: 0.75rem !important;
+  }
+  
+  .w-64 {
+    width: 9rem !important;
+  }
+} 

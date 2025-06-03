@@ -2,7 +2,8 @@ import React, { useRef, useEffect, useState } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { motion, useTransform, useScroll } from 'framer-motion';
-import dnaVideo from "../../assets/dna.mp4";
+import dnaVideo from "../../assets/dna-5sec.mp4";
+import './DnaSection.css';
 
 // Register the ScrollTrigger plugin
 gsap.registerPlugin(ScrollTrigger);
@@ -11,397 +12,419 @@ const ScrollVideoPlayer = () => {
   const videoRef = useRef(null);
   const containerRef = useRef(null);
   const triggerRef = useRef(null);
-  const scrollTriggerRef = useRef(null);
-  const videoInitializedRef = useRef(false);
-  const isTouchDeviceRef = useRef(false);
-  const lastTouchTimeRef = useRef(0);
-  const lastScrollTimeRef = useRef(0);
-  const [videoLoaded, setVideoLoaded] = useState(false);
-  const [videoDuration, setVideoDuration] = useState(0);
+  const canvasRef = useRef(null);
+  const contextRef = useRef(null);
+  const [isLoaded, setIsLoaded] = useState(false);
   const [scrollProgress, setScrollProgress] = useState(0);
-  const [isInViewport, setIsInViewport] = useState(false);
+  const [videoDuration, setVideoDuration] = useState(0);
+  const [videoAspect, setVideoAspect] = useState(16 / 9); // Default aspect ratio
+  const scrollInstanceRef = useRef(null);
+  const frameCountRef = useRef(0);
+  const lastTimeRef = useRef(0);
+  const [isMobile, setIsMobile] = useState(false);
 
-  // Framer Motion animation values
+  // Playback speed factor - slower value = slower playback
+  // This effectively makes the video play at 0.5x speed (shows only half the video over the same scroll distance)
+  const playbackSpeedFactor = 0.4;
+
+  // Check mobile on component mount
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+
+    // Initial check
+    checkMobile();
+
+    // Listen for resize events
+    window.addEventListener('resize', checkMobile);
+
+    return () => {
+      window.removeEventListener('resize', checkMobile);
+    };
+  }, []);
+
+  // Framer Motion animation values - smaller movements on mobile
   const { scrollYProgress } = useScroll({
     target: triggerRef,
     offset: ["start start", "end end"]
   });
 
-  // Transform values based on scroll progress
-  const titleOpacity = useTransform(scrollYProgress, [0, 0.2, 0.8, 1], [0, 1, 1, 0]);
-  const titleY = useTransform(scrollYProgress, [0, 0.2, 0.8, 1], [50, 0, 0, -50]);
-  const subtitleOpacity = useTransform(scrollYProgress, [0, 0.3, 0.7, 1], [0, 1, 1, 0]);
-  const subtitleY = useTransform(scrollYProgress, [0, 0.3, 0.7, 1], [30, 0, 0, -30]);
-  const videoFilter = useTransform(
+  // Adjust animations for mobile
+  const titleY = useTransform(
     scrollYProgress,
-    [0, 0.5, 1],
-    [
-      "brightness(1.0) contrast(1.0)",
-      "brightness(1.1) contrast(1.05)",
-      "brightness(1.0) contrast(1.0)"
-    ]
+    [0, 0.2, 0.8, 1],
+    isMobile ? [25, 0, 0, -25] : [50, 0, 0, -50]
   );
 
-  // Function to keep video playing
-  const ensureVideoIsPlaying = (video) => {
-    if (video && video.paused && isInViewport) {
-      video.play().catch(e => console.log('Play attempt failed:', e));
+  const titleOpacity = useTransform(
+    scrollYProgress,
+    [0, 0.2, 0.8, 1],
+    [0, 1, 1, 0]
+  );
+
+  const subtitleY = useTransform(
+    scrollYProgress,
+    [0, 0.3, 0.7, 1],
+    isMobile ? [15, 0, 0, -15] : [30, 0, 0, -30]
+  );
+
+  const subtitleOpacity = useTransform(
+    scrollYProgress,
+    [0, 0.3, 0.7, 1],
+    [0, 1, 1, 0]
+  );
+
+  // Function to maintain aspect ratio when rendering to canvas
+  const renderVideoFrameToCanvas = () => {
+    if (!videoRef.current || !canvasRef.current || !contextRef.current) return;
+
+    try {
+      const video = videoRef.current;
+      const canvas = canvasRef.current;
+      const ctx = contextRef.current;
+
+      // Clear the canvas first
+      ctx.fillStyle = '#000';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Get canvas dimensions
+      const canvasWidth = canvas.width;
+      const canvasHeight = canvas.height;
+
+      // Calculate dimensions for fitting the video properly
+      let drawWidth, drawHeight, offsetX, offsetY;
+
+      // Fit to cover (like background-size: cover)
+      // This ensures the video fills the entire canvas with no empty space
+      if (videoAspect > canvasWidth / canvasHeight) {
+        // Video is wider than canvas (in aspect ratio terms)
+        // Match height and allow width to extend beyond canvas edges
+        drawHeight = canvasHeight;
+        drawWidth = drawHeight * videoAspect;
+        offsetX = (canvasWidth - drawWidth) / 2; // Center horizontally
+        offsetY = 0;
+      } else {
+        // Video is taller than canvas (in aspect ratio terms)
+        // Match width and allow height to extend beyond canvas edges
+        drawWidth = canvasWidth;
+        drawHeight = drawWidth / videoAspect;
+        offsetX = 0;
+        offsetY = (canvasHeight - drawHeight) / 2; // Center vertically
+      }
+
+      // Apply custom scaling based on device and aspect ratio
+      const isExtremelyWide = videoAspect > 2.5; // For extremely wide videos
+
+      if (isExtremelyWide) {
+        // For extremely wide videos, scale them down a bit
+        const scaleDown = isMobile ? 0.85 : 0.9;
+        drawWidth *= scaleDown;
+        drawHeight *= scaleDown;
+        // Recenter
+        offsetX = (canvasWidth - drawWidth) / 2;
+        offsetY = (canvasHeight - drawHeight) / 2;
+      }
+
+      // Apply smoothing for better quality
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+
+      // Draw the video frame
+      ctx.drawImage(
+        video,
+        offsetX, offsetY,
+        drawWidth, drawHeight
+      );
+
+      // Count rendered frames for debugging
+      frameCountRef.current++;
+    } catch (error) {
+      console.log("Error rendering video frame:", error);
     }
   };
 
+  // Initialize the canvas and context
+  const initCanvas = () => {
+    if (!canvasRef.current || !videoRef.current) return;
+
+    const canvas = canvasRef.current;
+    const video = videoRef.current;
+
+    // Calculate video aspect ratio
+    const videoWidth = video.videoWidth || 16;
+    const videoHeight = video.videoHeight || 9;
+    const aspect = videoWidth / videoHeight;
+    setVideoAspect(aspect);
+    console.log("Video dimensions:", videoWidth, "x", videoHeight, "Aspect ratio:", aspect.toFixed(2));
+
+    // Use higher quality on desktop, lower on mobile for performance
+    const dpr = isMobile ?
+      Math.min(window.devicePixelRatio, 1) :  // Use 1x on mobile for better performance
+      Math.min(window.devicePixelRatio, 2);   // Cap at 2x on desktop for reasonable performance
+
+    // Get the actual size of the container
+    const container = canvas.parentElement;
+    const containerWidth = container.offsetWidth;
+    const containerHeight = container.offsetHeight;
+
+    // Set canvas size based on container size and DPR
+    canvas.width = containerWidth * dpr;
+    canvas.height = containerHeight * dpr;
+
+    // Create and store the context
+    const ctx = canvas.getContext('2d', {
+      alpha: false, // Optimization for non-transparent canvas
+      desynchronized: true, // Potential performance improvement
+      willReadFrequently: false // Performance hint
+    });
+
+    // Scale the drawing operations by DPR
+    ctx.scale(dpr, dpr);
+    contextRef.current = ctx;
+
+    // Set canvas CSS size to match container
+    canvas.style.width = `${containerWidth}px`;
+    canvas.style.height = `${containerHeight}px`;
+
+    // Render initial frame
+    renderVideoFrameToCanvas();
+
+    console.log("Canvas initialized with dimensions:",
+      canvas.width, "x", canvas.height,
+      "(display size:", containerWidth, "x", containerHeight, ")");
+  };
+
+  // Calculate adjusted video duration based on playback speed factor
+  const getAdjustedDuration = (actualDuration) => {
+    // We make the scroll distance cover only a portion of the video
+    // This effectively slows down the playback rate
+    return actualDuration * (1 / playbackSpeedFactor);
+  };
+
   useEffect(() => {
+    // Initialize once container is available
+    if (!containerRef.current || !videoRef.current || !canvasRef.current) return;
+
     const video = videoRef.current;
     const container = containerRef.current;
     const trigger = triggerRef.current;
 
-    if (!video || !container || !trigger) return;
+    // Initial scroll height - smaller for mobile
+    const initialHeight = isMobile ? window.innerHeight * 2 : window.innerHeight * 3;
+    trigger.style.height = `${initialHeight}px`;
 
-    // Prevent duplicate initialization
-    if (videoInitializedRef.current) return;
+    // Handle video load
+    const handleVideoLoad = () => {
+      console.log("Video loaded, dimensions:", video.videoWidth, "x", video.videoHeight);
 
-    // Check if this is a touch device
-    isTouchDeviceRef.current = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-    console.log(`Touch device detected: ${isTouchDeviceRef.current}`);
+      // Set video aspect ratio
+      const aspect = video.videoWidth / video.videoHeight;
+      setVideoAspect(aspect);
 
-    let lastTime = 0;
-    let requestId = null;
-    let lastScrollDirection = 0;
-    let lastScrollPos = 0;
-    let scrollTimeout = null;
-    let playAttemptInterval = null;
+      const actualDuration = video.duration || 0;
+      setIsLoaded(true);
+      setVideoDuration(actualDuration);
+      console.log("Video duration:", actualDuration);
 
-    // Setup the continuous play attempt interval
-    // This will periodically try to play the video whenever it's in viewport
-    const setupPlayAttemptInterval = () => {
-      // Clear any existing interval first
-      if (playAttemptInterval) clearInterval(playAttemptInterval);
-
-      // Create new interval - try to play every second if in viewport
-      playAttemptInterval = setInterval(() => {
-        if (isInViewport && video && video.paused) {
-          video.play().catch(e => console.log('Interval play attempt failed:', e));
-        }
-      }, 1000);
-    };
-
-    // Throttle function for smoother updates
-    const throttle = (callback, delay) => {
-      let last = 0;
-      return function () {
-        const now = new Date().getTime();
-        if (now - last >= delay) {
-          callback.apply(null, arguments);
-          last = now;
-        }
-      };
-    };
-
-    // Handle video seek with RAF for smoother playback
-    const updateVideoTime = (time) => {
-      if (requestId) {
-        cancelAnimationFrame(requestId);
-      }
-
-      requestId = requestAnimationFrame(() => {
-        if (Math.abs(video.currentTime - time) > 0.01) {
-          video.currentTime = time;
-          // Every time we update the time, try to ensure the video is playing
-          lastScrollTimeRef.current = Date.now();
-          ensureVideoIsPlaying(video);
-        }
-      });
-    };
-
-    // Handle window scroll events directly
-    const handleWindowScroll = () => {
-      lastScrollTimeRef.current = Date.now();
-
-      // Try to play the video during scroll
-      if (isInViewport && video && video.paused) {
-        video.play().catch(e => { });
-      }
-
-      // Clear existing timeout
-      if (scrollTimeout) {
-        clearTimeout(scrollTimeout);
-      }
-
-      // Set a timeout to check if video is playing after scroll ends
-      scrollTimeout = setTimeout(() => {
-        if (isInViewport && video && video.paused) {
-          video.play().catch(e => { });
-        }
-      }, 100);
-    };
-
-    // Add touch event handling for all devices
-    const handleInteractionStart = () => {
-      lastTouchTimeRef.current = Date.now();
-      if (isInViewport && video) {
-        video.play().catch(() => { });
-      }
-    };
-
-    const handleInteractionEnd = () => {
-      // Keep track of the last interaction time
-      lastTouchTimeRef.current = Date.now();
-
-      // Clear any existing timeout
-      if (scrollTimeout) {
-        clearTimeout(scrollTimeout);
-      }
-
-      // Make sure video is playing after interaction ends
-      scrollTimeout = setTimeout(() => {
-        if (isInViewport && video && video.paused) {
-          video.play().catch(() => { });
-        }
-      }, 50);
-    };
-
-    const handleVisibilityChange = () => {
-      if (document.hidden) {
-        // Page is hidden (user switched tabs or apps)
-        if (!video.paused) video.pause();
-      } else {
-        // Page is visible again
-        if (isInViewport) {
-          video.play().catch(e => { });
-        }
-      }
-    };
-
-    const handleVideoLoaded = () => {
-      if (videoInitializedRef.current) return;
-
-      console.log("Video loaded, duration:", video.duration);
-      setVideoLoaded(true);
-      setVideoDuration(video.duration);
-      video.currentTime = 0;
-      video.muted = true;
-      video.loop = true; // Enable looping
-      video.playsInline = true;
-      videoInitializedRef.current = true;
-
-      // Adjust the scroll height dynamically based on video duration
-      // 1 second = 50vh of scrolling space (configurable)
-      const scrollMultiplier = 50; // vh per second
-      const scrollHeight = Math.max(300, Math.round(video.duration * scrollMultiplier));
+      // Adjust scroll height based on video duration - less scroll space on mobile
+      // We're also factoring in the playback speed to make the scroll distance appropriate
+      const scrollMultiplier = isMobile ? 80 : 120; // vh per second (increased for smoother playback)
+      const scrollHeight = Math.max(isMobile ? 200 : 300,
+        Math.round(getAdjustedDuration(actualDuration) * scrollMultiplier));
       trigger.style.height = `${scrollHeight}vh`;
-      console.log(`Set scroll height to ${scrollHeight}vh based on video duration ${video.duration}s`);
+      console.log(`Set scroll height to ${scrollHeight}vh based on video duration ${actualDuration}s, adjusted duration: ${getAdjustedDuration(actualDuration)}s`);
 
-      setupScrollAnimation();
-      setupPlayAttemptInterval();
+      // Initialize canvas once video is loaded
+      initCanvas();
 
-      // Try to play immediately when loaded
-      video.play().catch(e => console.log('Initial play prevented:', e));
-    };
-
-    const setupScrollAnimation = () => {
-      // Clear any existing ScrollTrigger instances
-      if (scrollTriggerRef.current) {
-        scrollTriggerRef.current.kill();
-      }
-
-      // Create the GSAP ScrollTrigger
-      scrollTriggerRef.current = ScrollTrigger.create({
-        trigger: trigger,
-        start: "top top",
-        end: "bottom bottom",
-        scrub: isTouchDeviceRef.current ? 0.5 : 0.8, // Adjusted for smoother scrubbing
-        markers: false, // Set to true for debugging
-        pin: container,
-        pinSpacing: true,
-        anticipatePin: 1,
-        refreshPriority: 1,
-        fastScrollEnd: true,
-        onEnter: () => {
-          setIsInViewport(true);
-          video.play().catch(() => { });
-        },
-        onEnterBack: () => {
-          setIsInViewport(true);
-          video.play().catch(() => { });
-        },
-        onLeave: () => {
-          setIsInViewport(false);
-          video.pause();
-        },
-        onLeaveBack: () => {
-          setIsInViewport(false);
-          video.pause();
-        },
-        onUpdate: throttle((self) => {
-          // Get progress from 0 to 1
-          const progress = self.progress;
-          setScrollProgress(progress);
-          lastScrollTimeRef.current = Date.now();
-
-          if (video && video.duration) {
-            // Set video currentTime based on scroll progress
-            const targetTime = progress * video.duration;
-
-            // Only update if the change is significant
-            if (Math.abs(lastTime - targetTime) > 0.01) {
-              lastTime = targetTime;
-              updateVideoTime(targetTime);
-            }
-
-            // Always try to ensure video is playing when in viewport
-            if (self.isActive && video.paused) {
-              video.play().catch(() => { });
-            }
-          }
-        }, isTouchDeviceRef.current ? 32 : 16)
-      });
-
+      // Refresh ScrollTrigger
       ScrollTrigger.refresh();
 
-      return () => {
-        if (requestId) {
-          cancelAnimationFrame(requestId);
-        }
-        if (scrollTriggerRef.current) {
-          scrollTriggerRef.current.kill();
-        }
-        if (scrollTimeout) {
-          clearTimeout(scrollTimeout);
-        }
-      };
+      // Pre-render first frame
+      renderVideoFrameToCanvas();
     };
 
-    // Video event listeners - only add once
-    video.addEventListener('loadedmetadata', handleVideoLoaded, { once: true });
-    video.addEventListener('canplay', handleVideoLoaded, { once: true });
+    // Add video event listeners
+    video.addEventListener('loadedmetadata', handleVideoLoad, { once: true });
     video.addEventListener('error', (e) => {
       console.error("Video error:", e);
-    }, { once: true });
-
-    // Handle pause events - try to resume playback if we're in viewport
-    video.addEventListener('pause', () => {
-      const timeSinceScroll = Date.now() - lastScrollTimeRef.current;
-      const timeSinceTouch = Date.now() - lastTouchTimeRef.current;
-
-      // If we're in viewport and the pause was automatic (during scroll or right after touch)
-      // then try to resume playback
-      if (isInViewport && (timeSinceScroll < 1000 || timeSinceTouch < 1000)) {
-        // Small timeout to give browser a break before trying to play again
-        setTimeout(() => {
-          video.play().catch(() => { });
-        }, 50);
-      }
     });
 
-    // Force video to loop
-    video.addEventListener('ended', () => {
-      if (isInViewport) {
+    // Use requestAnimationFrame for smooth rendering
+    // On mobile, render at a lower framerate for better performance
+    let animationFrameId;
+    let lastRenderTime = 0;
+    const renderInterval = isMobile ? 33 : 16; // 30fps on mobile, 60fps on desktop
+
+    const renderLoop = (timestamp) => {
+      if (isLoaded) {
+        // Limit frame rate for smoother appearance
+        if (!lastRenderTime || timestamp - lastRenderTime > renderInterval) {
+          renderVideoFrameToCanvas();
+          lastRenderTime = timestamp;
+        }
+      }
+      animationFrameId = requestAnimationFrame(renderLoop);
+    };
+
+    // Apply frame interpolation by pre-loading and buffering frames
+    const preloadFrames = () => {
+      if (video.readyState >= 3) {
+        // Seek to a few key frames and render to "warm up" the video
+        const keyPoints = [0, 0.25, 0.5, 0.75, 1.0];
+        keyPoints.forEach(point => {
+          const time = point * video.duration;
+          video.currentTime = time;
+        });
+        // Reset to beginning
         video.currentTime = 0;
-        video.play().catch(e => { });
+      }
+    };
+
+    // Create and configure ScrollTrigger with better settings for smoother scrolling
+    scrollInstanceRef.current = ScrollTrigger.create({
+      trigger: trigger,
+      start: "top top",
+      end: "bottom bottom",
+      scrub: isMobile ? 0.3 : 0.2, // Adjusted scrub values for smoother playback
+      pin: container,
+      pinSpacing: true,
+      anticipatePin: 1,
+      refreshPriority: 1,
+      fastScrollEnd: true,
+      onEnter: () => {
+        console.log("Video section entered viewport");
+      },
+      onEnterBack: () => {
+        console.log("Video section re-entered viewport from bottom");
+      },
+      invalidateOnRefresh: true,
+      onUpdate: (self) => {
+        // Update scroll progress
+        setScrollProgress(self.progress);
+
+        // Calculate target time with playback speed factor
+        // This is the key change - we only show a portion of the video over the full scroll distance
+        // This makes the video appear to play slower
+        if (video && video.duration) {
+          const targetTime = self.progress * video.duration * playbackSpeedFactor;
+
+          // Only update video time if change is significant
+          const threshold = isMobile ? 0.05 : 0.01;
+          if (Math.abs(video.currentTime - targetTime) > threshold) {
+            try {
+              // For better performance especially on mobile, directly set the time
+              // instead of using GSAP animation which can be heavier
+              if (isMobile) {
+                video.currentTime = targetTime;
+              } else {
+                // On desktop, use GSAP for smoother transitions between frames
+                gsap.to(video, {
+                  currentTime: targetTime,
+                  duration: 0.1,
+                  overwrite: true,
+                  ease: "power1.out"
+                });
+              }
+            } catch (err) {
+              // Handle any potential errors
+              console.log("Error updating video time:", err);
+            }
+          }
+        }
       }
     });
 
-    // Add window scroll listener to help keep video playing
-    window.addEventListener('scroll', handleWindowScroll, { passive: true });
+    // Try to preload frames
+    if (video.readyState >= 3) {
+      preloadFrames();
+    } else {
+      video.addEventListener('canplaythrough', preloadFrames, { once: true });
+    }
 
-    // Add interaction events for both desktop and mobile
-    container.addEventListener('mousedown', handleInteractionStart, { passive: true });
-    container.addEventListener('mouseup', handleInteractionEnd, { passive: true });
-    container.addEventListener('touchstart', handleInteractionStart, { passive: true });
-    container.addEventListener('touchend', handleInteractionEnd, { passive: true });
+    // Start animation loop
+    animationFrameId = requestAnimationFrame(renderLoop);
 
-    // Visibility change for tab switching
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-
-    // Force load video
+    // Preload the video
     video.muted = true;
     video.playsInline = true;
     video.preload = "auto";
-    video.loop = true;
-    video.currentTime = 0;
-
-    // Start loading the video
-    const loadVideo = async () => {
-      try {
-        video.load();
-        // If video is already loaded
-        if (video.readyState >= 3) {
-          handleVideoLoaded();
-        }
-      } catch (err) {
-        console.error("Error loading video:", err);
-      }
-    };
-
-    loadVideo();
+    video.crossOrigin = "anonymous"; // Avoid CORS issues if needed
+    video.load();
 
     return () => {
-      // Clean up event listeners
-      video.removeEventListener('loadedmetadata', handleVideoLoaded);
-      video.removeEventListener('canplay', handleVideoLoaded);
-      video.removeEventListener('pause', () => { });
-      video.removeEventListener('ended', () => { });
-
-      window.removeEventListener('scroll', handleWindowScroll);
-      container.removeEventListener('mousedown', handleInteractionStart);
-      container.removeEventListener('mouseup', handleInteractionEnd);
-      container.removeEventListener('touchstart', handleInteractionStart);
-      container.removeEventListener('touchend', handleInteractionEnd);
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-
-      // Clean up intervals and timeouts
-      if (playAttemptInterval) {
-        clearInterval(playAttemptInterval);
+      // Clean up
+      if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
       }
-
-      // Cancel any pending animation frames
-      if (requestId) {
-        cancelAnimationFrame(requestId);
+      if (scrollInstanceRef.current) {
+        scrollInstanceRef.current.kill();
       }
-
-      // Clean up timeout
-      if (scrollTimeout) {
-        clearTimeout(scrollTimeout);
-      }
-
-      // Kill ScrollTrigger instance
-      if (scrollTriggerRef.current) {
-        scrollTriggerRef.current.kill();
-      }
+      video.removeEventListener('loadedmetadata', handleVideoLoad);
+      video.removeEventListener('canplaythrough', preloadFrames);
     };
-  }, []); // Empty dependency array to ensure this only runs once
+  }, [isLoaded, isMobile]);
+
+  // Handle resize events
+  useEffect(() => {
+    const handleResize = () => {
+      if (canvasRef.current && containerRef.current) {
+        const canvas = canvasRef.current;
+        const container = containerRef.current;
+        const dpr = isMobile ? Math.min(window.devicePixelRatio, 1.5) : (window.devicePixelRatio || 1);
+
+        canvas.width = container.offsetWidth * dpr;
+        canvas.height = container.offsetHeight * dpr;
+
+        if (contextRef.current) {
+          contextRef.current.scale(dpr, dpr);
+          renderVideoFrameToCanvas(); // Re-render on resize
+        }
+      }
+
+      // Refresh ScrollTrigger on resize
+      ScrollTrigger.refresh();
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, [isMobile]);
 
   return (
     <div className="w-full">
-      {/* Trigger Container - height will be adjusted based on video duration */}
+      {/* Trigger Container */}
       <div
         ref={triggerRef}
         className="relative"
-        style={{ height: '300vh' }} // Start with a taller container, will be adjusted dynamically
+        style={{ height: '300vh' }}
       >
         {/* Video Container */}
         <div
           ref={containerRef}
           className="w-full h-screen bg-black overflow-hidden z-10"
         >
-          {/* Video Element with Framer Motion - removed scale effect */}
-          <motion.video
+          {/* Hidden Video Element - drives the canvas rendering */}
+          <video
             ref={videoRef}
-            className="w-full h-full object-cover"
+            className="hidden"
             muted
             playsInline
             preload="auto"
-            loop
-            autoPlay
-            style={{
-              filter: videoFilter
-            }}
           >
             <source src={dnaVideo} type="video/mp4" />
-            Your browser does not support the video tag.
-          </motion.video>
+          </video>
+
+          {/* Canvas for rendering video frames */}
+          <canvas
+            ref={canvasRef}
+            className="video-canvas"
+          />
 
           {/* Loading State */}
-          {!videoLoaded && (
+          {!isLoaded && (
             <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-70">
               <div className="text-white text-center">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
@@ -410,11 +433,11 @@ const ScrollVideoPlayer = () => {
             </div>
           )}
 
-          {/* Overlay Content with Framer Motion */}
+          {/* Overlay Content with Framer Motion - adjusted for mobile */}
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
             <div className="text-center text-white z-20">
               <motion.h2
-                className="text-4xl md:text-7xl font-bold mb-6 tracking-wide"
+                className="text-4xl md:text-7xl font-bold mb-6 tracking-wide motion-h2"
                 style={{
                   opacity: titleOpacity,
                   y: titleY
@@ -423,7 +446,7 @@ const ScrollVideoPlayer = () => {
                 DNA SEQUENCE
               </motion.h2>
               <motion.p
-                className="text-lg md:text-2xl max-w-md mx-auto leading-relaxed"
+                className="text-lg md:text-2xl max-w-md mx-auto leading-relaxed motion-p"
                 style={{
                   opacity: subtitleOpacity,
                   y: subtitleY
@@ -431,12 +454,6 @@ const ScrollVideoPlayer = () => {
               >
                 Scroll to control video playback
               </motion.p>
-              <motion.div
-                className="mt-4 text-sm"
-                style={{ opacity: subtitleOpacity }}
-              >
-                {isInViewport ? '▶ Playing' : '⏸ Paused'}
-              </motion.div>
             </div>
           </div>
 
