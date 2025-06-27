@@ -415,22 +415,29 @@ export const Home = () => {
         <Slider ref={slider => {sliderProject = slider;}} {...settings2} className="projectslider">
           <div className="projectslide">
             <img alt="" src="/images/project2.png" />
-            <img alt="" src="/images/logo.jpg" className="prologo"/>
+              <div className="prologo"><img alt="" src="/images/logo.jpg"/></div>
           </div>
 
           <div className="projectslide">
             <img alt="" src="/images/project2.png" />
-            <img alt="" src="/images/logo.jpg" className="prologo"/>
+          
+            <div className="prologo">
+  <img alt="" src="/images/logo.jpg" />
+            </div>
           </div>
 
           <div className="projectslide">
             <img alt="" src="/images/project2.png" />
-            <img alt="" src="/images/logo.jpg" className="prologo"/>
+            <div className="prologo">
+              <img alt="" src="/images/logo.jpg" />
+            </div>
           </div>
 
           <div className="projectslide">
             <img alt="" src="/images/project2.png" />
-            <img alt="" src="/images/logo.jpg" className="prologo"/>
+            <div className="prologo">
+              <img alt="" src="/images/logo.jpg" />
+            </div>
 
           </div>
         </Slider>

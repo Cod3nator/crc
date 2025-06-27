@@ -797,6 +797,13 @@ background-color: #b48e47;
   width: 80%;
   line-height: 120%;
 }
+.sliderproject {
+  position: relative;
+}
+.sliderproject .projectarrows{
+  /* background-color: red; */
+  z-index: 0;
+}
 
 .sliderproject .slick-slider .slick-list
 {overflow: visible;}
@@ -815,24 +822,18 @@ background-color: #b48e47;
   position: absolute;
   bottom: -50px;
   left: -50px;
-  display: block;
+  /* display: block; */
   width: 100px;
   border-radius: 50%;
   z-index: 999;
-
+  display: flex;
+  background-color: white;
 }
-
-.projectslide .prologo::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: white;
+.projectslide .prologo img{
   border-radius: 50%;
-  z-index: -1;
+
 }
+
 
 
 .sliderproject
@@ -854,6 +855,7 @@ position: relative;
     position: absolute;
     bottom: 4px;
     right:0;
+    z-index: 10 ;
 }
 
 .projectarrows button
