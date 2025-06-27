@@ -4,10 +4,72 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vite + React</title>
+    <title>CRC</title>
+    <link
+  rel="stylesheet"
+  type="text/css"
+  charset="UTF-8"
+  href="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.6.0/slick.min.css"
+/>
+<link
+  rel="stylesheet"
+  type="text/css"
+  href="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.6.0/slick-theme.min.css"
+/>
+    
   </head>
   <body>
     <div id="root"></div>
+
+    <script src="/js/jquery.min.js"></script>
+    <script src="/js/script.js"></script>
     <script type="module" src="/src/main.jsx"></script>
+
+      <!-- <script src='https://cdnjs.cloudflare.com/ajax/libs/gsap/3.5.0/gsap.min.js'></script>
+<script src='https://cdnjs.cloudflare.com/ajax/libs/gsap/3.5.0/ScrollTrigger.js'></script>
+
+    <script id="rendered-js">
+    console.clear();
+
+const canvas = document.getElementById("hero-lightpass");
+const context = canvas.getContext("2d");
+
+canvas.width = 1832;
+canvas.height = 1132;
+
+const frameCount = 241;
+const currentFrame = index => (
+  `images/dna/${(index + 1).toString().padStart(4, '0')}.png`
+);
+
+const images = []
+const airpods = {
+  frame: 0
+};
+
+for (let i = 0; i < frameCount; i++) {
+  const img = new Image();
+  img.src = currentFrame(i);
+  images.push(img);
+}
+
+gsap.to(airpods, {
+  frame: frameCount - 1,
+  snap: "frame",
+  ease: "none",
+  scrollTrigger: {
+    scrub: 0.5
+  },
+  onUpdate: render // use animation onUpdate instead of scrollTrigger's onUpdate
+});
+
+images[0].onload = render;
+
+function render() {
+  context.clearRect(0, 0, canvas.width, canvas.height);
+  context.drawImage(images[airpods.frame], 0, 0); 
+}
+
+    </script> -->
   </body>
 </html>

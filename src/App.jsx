@@ -1,21 +1,31 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Homepage from "./pages/homepage";
-import Layout from "./components/layout/base";
-import DNApage from "./pages/DNApage";
-function App() {
+import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
-  return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Layout />}>
-          <Route index element={<Homepage />} />
-           <Route path="/dna_commercial" element={<DNApage />} />
-          {/*<Route path="contact" element={<Contact />} />
-          <Route path="*" element={<NotFound />} /> */}
-        </Route>
-      </Routes>
-    </BrowserRouter>
-  )
+import { AppLayout } from "./components/Layout/AppLayout";
+
+import "./App.css";
+import { Home } from "./pages/Home";
+
+
+
+const router = createBrowserRouter([
+  {
+    path:"/",
+    element: <AppLayout />,
+    children: [
+      {
+        path: "/",
+        element: <Home />
+      },
+      
+    ],
+  }
+
+
+	
+]);
+
+const App = () => {
+	return <RouterProvider router={router}></RouterProvider>;
 }
 
-export default App
+export default App;
