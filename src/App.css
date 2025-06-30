@@ -232,55 +232,84 @@ a:hover {
   grid-template-columns: repeat(4,1fr)
 }
 
-header {
-  /* height: 10rem; */
 
-  background-color: transparent;
-  width: 100%;
-  position:static;
-  top:0;
-  
+  footer {
+    padding: 45px 0;
+    background-color: #f0f0f0;
 }
 
-header .container {
-  /*height: 10rem; */
-    padding: 0;
-}
-
-.header-logo
-{
-width:100px;
-
-}
-
-.navbar-grid {
-  grid-template-columns: .5fr 1fr;
+.footer-content {
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
     align-items: center;
-    height: 6rem;
-    padding: 10px 3.2rem;
+    padding: 0 15px;
 }
 
-nav ul {
+.footer-logo {
+    display: flex;
+    align-items: center;
+    margin-bottom:20px;
+}
+.footer-logo img{
+  height: 50px;
+  width: 100%;
+}
+.logo-text {
+    color: #4A90E2;
+    font-size: 24px;
+    font-weight: bold;
+    margin-right: 10px;
+}
+
+.tagline {
+    color: #4A90E2;
+    font-size: 14px;
+}
+
+.social-icons-and-disclaimer {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.social-icons{
   display: flex;
-  justify-content: flex-end;
-  gap: 3.2rem;
-  color: #000;
+  gap: 29px;
+  /* flex-direction: ; */
+}
+.social-icon {
+    width: 39px;
+    height: 39px;
+    border-radius: 50%;
 }
 
-nav ul li a {
-  color: #000;
-  text-decoration: none;
+.footer-copyright {
+    color: #666;
+    font-size: 12px;
 }
 
-.ham-menu {
-  display: none
+/* Responsive Design */
+@media (max-width: 768px) {
+    .footer-content {
+        flex-direction: column;
+        text-align: center;
+        gap: 15px;
+    }
+
+    .footer-social-icons {
+        justify-content: center;
+    }
 }
 
 .heading
 {
-  font-family: 'Trirong-Light';
-  font-size: 90px;
-  font-weight: 100;
+  /* font-family: 'Trirong-Light'; */
+  font-family: "Trirong-ExtraLight";
+  font-size: 110px;
+  line-height: 130%;
+  font-weight: 200;
 }
 
 .rosegold
@@ -357,11 +386,11 @@ background-color: #b48e47;
 {
   background-color: #fff;
     position: absolute;
-    clip-path: none;
+   display: flex;
     z-index: 1;
-    height: 46%;
-    bottom: 0;
-    top: unset;
+    height: 50%;
+    width: 100%;
+    top: 46%;
 }
 
 .visionaries .vsubhead
@@ -420,12 +449,18 @@ background-color: #b48e47;
   font-size: 30px;
   margin-bottom: 50px;
 }
+.vslideimage{
+  height: 100%;
+  width: 100%;
+}
 
-/* 
-.vslideimage
-{
- 
-} */
+.vslideimage img
+{ 
+ max-height: 785px;
+ max-width: 478px;
+ height: 100%;
+ width: 100%;
+}
 
 
 .visionaryoption
@@ -441,30 +476,63 @@ background-color: #b48e47;
     bottom: 0;
     z-index: 3;
 }
-
-.visionaryoption .face
-{
+.visionaryoption .face {
   cursor: pointer;
+  transition: all 0.3s ease; /* Smooth transition */
+  opacity: 0.7; /* Default state - slightly transparent */
 }
 
-.visionaryoption .face img
-{
-  border:1px solid #fff;
-  border-radius: 50%;
+.visionaryoption .face.active {
+  opacity: 1; 
+}
+.visionaryoption .face img {
+  border: 1px solid #fff;
+  border-radius: 100%;
   background-color: #fff;
+  transition: all 0.3s ease;
 }
 
-.visionaryoption .face h2
-{
-  color:#fff;
-  font-size:15px;
+.visionaryoption .face .face-wrap {
+ 
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: all 0.3s ease;
+  border-radius: 100%;
+  padding: 4.5px;
+}
+
+.visionaryoption .face.active .face-wrap {
+  border: 2px solid white;
+  box-shadow: 0 0 0 6px transparent; /* Creates 6px space */
+  border-radius: 100%;
+}
+
+.visionaryoption .face img {
+ background-color: white;
+}
+
+.visionaryoption .face h2 {
+  color: #fff;
+  font-size: 15px;
   font-weight: 500;
+  transition: all 0.3s ease;
 }
 
-.visionaryoption .face p
-{
-  color:#fff;
-  font-size:10px;
+.visionaryoption .face.active h2 {
+  font-weight: 600;
+}
+
+.visionaryoption .face p {
+  color: #fff;
+  font-size: 10px;
+  transition: all 0.3s ease;
+}
+
+/* Hover effects for non-active items */
+.visionaryoption .face:not(.active):hover {
+  opacity: 0.9;
+  transform: scale(1.05);
 }
 
 /* constultants */
@@ -513,6 +581,14 @@ background-color: #b48e47;
     align-items: center;
     justify-content: space-between;
 }
+.constultant .consultantName{
+  max-width: 383px;
+   max-height: 574px !important;
+}
+.constultant .consultantProject{
+  width: 100%;
+  height: 100%;
+}
 .consslide
 {
   /* scroll-snap-align: start;
@@ -521,6 +597,8 @@ background-color: #b48e47;
 
 .toprightround
 {
+   width: 100%;
+  height: 100%;
   border-top-right-radius: 50%;
 }
 
@@ -537,11 +615,11 @@ background-color: #b48e47;
     font-weight: 200;
 }
 
-.consultant img
+/* .consultant img
 {
   width:100%;
   height:auto;
-}
+} */
 
 .progress-bar-container
 {
@@ -638,11 +716,12 @@ background-color: #b48e47;
   padding: 10px;
 }
 
-.wwditemcontainer 
-{
-  position:relative;
-  overflow: hidden;
+.wwditemcontainer {
+    position: relative;
+    overflow: hidden;
+    border-radius: 20px;
 }
+
 
 .wwditemcontainer img
 {
@@ -712,6 +791,7 @@ background-color: #b48e47;
   .wwditem:hover .overlay3 {
     opacity: 1;
     transform: translateY(0); 
+      border-radius: 20px;
     pointer-events: auto;
   }
 
@@ -797,75 +877,74 @@ background-color: #b48e47;
   width: 80%;
   line-height: 120%;
 }
+
 .sliderproject {
   position: relative;
 }
-.sliderproject .projectarrows{
-  /* background-color: red; */
-  z-index: 0;
+
+.slider-container {
+  position: relative;
 }
 
-.sliderproject .slick-slider .slick-list
-{overflow: visible;}
-
-.projectslide
-{
-  position:relative;
+.sliderproject .slick-slider .slick-list {
+  overflow: visible;
+}
+.projectslider{
+   position: relative;
+   z-index: 1;
+}
+.projectslide {
+  position: relative;
 }
 
-.projectslide img
-{
-  width:100%;
+.projectslide img {
+  width: 100%;
+  z-index: 1;
+  position: relative;
 }
 
-.projectslide .prologo {
+.prologo {
   position: absolute;
-  bottom: -50px;
+  bottom: -50px; 
   left: -50px;
-  /* display: block; */
-  width: 100px;
-  border-radius: 50%;
-  z-index: 999;
+    width: 130px;
+  height: 130px;
   display: flex;
-  background-color: white;
+  z-index: 10; /* Higher z-index to be above arrows and image */
 }
-.projectslide .prologo img{
+
+.prologo img {
   border-radius: 50%;
 
 }
 
-
-
-.sliderproject
-{
+.sliderproject {
   display: block;
-width: 55%;
-position: relative;
+  width: 55%;
+  position: relative;
 }
 
-.projectarrows
-{
+.projectarrows {
   display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    gap: 10px;
-    background-color: #00000069;
-    padding: 10px;
-    width: 100%;
-    position: absolute;
-    bottom: 4px;
-    right:0;
-    z-index: 10 ;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  background-color: #00000069;
+  padding: 10px;
+  width: 100%;
+  position: absolute;
+  bottom:0%;
+  right: 0;
+  z-index: 2;
 }
 
-.projectarrows button
-{
+.projectarrows button {
   background-color: transparent;
-  border:0;
-  color:#fff;
+  border: 0;
+  color: #fff;
   font-size: 30px;
   display: flex;
-    align-items: center;
+  align-items: center;
 }
 
 .happinesshub
@@ -899,6 +978,7 @@ position: relative;
     display: flex;
     align-items: center;
     justify-content: space-between;
+    height: 400px;
 }
 .hcontent span{
   background-color: red;
@@ -918,7 +998,7 @@ position: relative;
 {
   position: absolute;
     left: 0px;
-    scale: 0.7;
+    scale: 0.8;
     box-shadow: 8px 20px 35px 13px rgba(0, 0, 0, 0.20);
 }
 
